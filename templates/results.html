@@ -5,27 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .result-card {
+            position: relative;
+            cursor: pointer;
+        }
+        .headline {
+            position: relative;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            min-height: 3rem; /* Adjust min-height as needed */
+            transition: opacity 0.3s ease;
+        }
+        .additional-info {
+            position: absolute;
+            bottom: 0; /* Adjust to align with bottom of card */
+            left: 0; /* Adjust to align with card */
+            right: 0; /* Adjust to align with card */
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .result-card:hover .headline {
+            opacity: 0;
+        }
+        .result-card:hover .additional-info {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
-  <div class="container mx-auto my-8">
-    <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 transform hover:-translate-y-1 hover:shadow-xl">&larr; Navigate to Home</a>
-  </div>  
+    <div class="container mx-auto my-8">
+        <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 transform hover:-translate-y-1 hover:shadow-xl">&larr; Navigate to Home</a>
+    </div>  
 
     <h1 class="text-3xl font-bold text-center my-8">Results</h1>
-      <div id="results" class="container mx-auto grid grid-cols-1 sm:grid-cols-2 md:cols-3 lg:grid-cols-4 gap-4">
+    <div id="results" class="container mx-auto grid grid-cols-1 sm:grid-cols-2 md:cols-3 lg:grid-cols-4 gap-4">
         {% for result in ner_results %}
-            <div class="
-              max-w-sm rounded-lg overflow-hidden shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-xl
-            ">
-              <img src="{{ result.image_url }}" alt="article image" class="w-full h-64 object-cover object-center opacity-90 hover:opacity-100">
-                <h2 class="text-xl font-semibold mb-2"><a href="{{ result.article_url }}" target="_blank">{{ result.headline }}</a></h2>
+        <div class="result-card max-w-sm rounded-lg overflow-hidden shadow-lg relative">
+            <img src="{{ result.image_url }}" alt="article image" class="w-full h-64 object-cover object-center opacity-90 hover:opacity-100">
+            <div class="headline h-min-[300px]">
+                <h2 class="text-xl font-semibold mb-2">
+                    <a href="{{ result.article_url }}" target="_blank">{{ result.headline }}</a>
+                </h2>
+            </div>
+            <div class="additional-info h-min-[300px]">
                 {% if result.vague_reference %}
-                    <p>The {{ result.vague_reference }} is {{ result.first_named_entity }}</p>
+                <h2 class="text-xl font-semibold mb-2">
+                    <a href="{{ result.article_url }}" target="_blank">The {{ result.vague_reference }} is {{ result.first_named_entity }}</a>
+                </h2>
                 {% else %}
-                    <p>No vague descriptor found</p>
+                <h2 class="text-xl font-semibold mb-2">
+                    <a href="{{ result.article_url }}" target="_blank">No vague descriptor found</a>
+                </h2>
                 {% endif %}
             </div>
+        </div>
         {% endfor %}
-      </div>
+    </div>
+
 </body>
 </html>
