@@ -9,6 +9,7 @@
         .result-card {
             position: relative;
             cursor: pointer;
+            overflow: hidden;
         }
         .text-container {
             position: relative;
@@ -22,24 +23,28 @@
             right: 0;
             bottom: 0;
             padding: 1rem;
-            background-color: rgba(255, 255, 255, 0.95);
             border: 1px solid #ccc;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
             z-index: 10;
-            transition: opacity 0.3s ease;
             overflow-y: auto; /* Allow vertical scrolling if content exceeds height */
+            transition: transform 0.5s ease;
+        }
+        .headline {
+            background-color: white;
+        }
+        .headline a {
+            color: #3b82f6; /* Tailwind's blue-500 */
         }
         .additional-info {
-            opacity: 0;
-            pointer-events: none;
+            transform: translateX(100%);
+            background-color: #3b82f6; /* Tailwind's blue-500 */
+            color: white;
         }
         .result-card:hover .headline {
-            opacity: 0;
-            pointer-events: none;
+            transform: translateX(-100%);
         }
         .result-card:hover .additional-info {
-            opacity: 1;
-            pointer-events: auto;
+            transform: translateX(0);
         }
     </style>
 </head>
@@ -62,11 +67,11 @@
                 <div class="additional-info">
                     {% if result.vague_reference %}
                     <h2 class="text-xl font-semibold mb-2">
-                        <a href="{{ result.article_url }}" target="_blank">The {{ result.vague_reference }} is {{ result.first_named_entity }}</a>
+                        <a href="{{ result.article_url }}" target="_blank" class="text-white hover:underline">The {{ result.vague_reference }} is {{ result.first_named_entity }}</a>
                     </h2>
                     {% else %}
                     <h2 class="text-xl font-semibold mb-2">
-                        <a href="{{ result.article_url }}" target="_blank">No vague descriptor found</a>
+                        <a href="{{ result.article_url }}" target="_blank" class="text-white hover:underline">No vague descriptor found</a>
                     </h2>
                     {% endif %}
                 </div>
