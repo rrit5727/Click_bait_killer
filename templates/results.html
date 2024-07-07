@@ -3,18 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Results Page</title>
+    <title>Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Results</h1>
-    <ul>
+<body class="bg-gray-100">
+  <div class="container mx-auto my-8">
+    <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 transform hover:-translate-y-1 hover:shadow-xl">&larr; Navigate to Home</a>
+  </div>  
+
+    <h1 class="text-3xl font-bold text-center my-8">Results</h1>
+      <div id="results" class="container mx-auto grid grid-cols-1 sm:grid-cols-2 md:cols-3 lg:grid-cols-4 gap-4">
         {% for result in ner_results %}
-        <li>
-            <h2>{{ result.headline }}</h2>
-            <p>Vague Reference: {{ result.vague_reference }}</p>
-            <p>Named Entities: {{ result.ner_result }}</p>
-        </li>
+            <div class="
+              max-w-sm rounded-lg overflow-hidden shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-xl
+            ">
+              <img src="{{ result.image_url }}" alt="article image" class="w-full h-64 object-cover object-center opacity-90 hover:opacity-100">
+                <h2 class="text-xl font-semibold mb-2"><a href="{{ result.article_url }}" target="_blank">{{ result.headline }}</a></h2>
+                {% if result.vague_reference %}
+                    <p>The {{ result.vague_reference }} is {{ result.first_named_entity }}</p>
+                {% else %}
+                    <p>No vague descriptor found</p>
+                {% endif %}
+            </div>
         {% endfor %}
-    </ul>
+      </div>
 </body>
 </html>

@@ -30,6 +30,19 @@ def get_article_text(url):
     full_text = ' '.join([p.text for p in paragraphs])
     return full_text[:512] + '...' if len(full_text) > 512 else full_text
 
+def get_image_url(url):
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        image = soup.find('img', class_='responsive-img_img inline-image')
+        if image and 'src' in image.attrs:
+            return image['src']
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching image from {url}: {str(e)}")
+        return None
+
 def analyze_headline(headline):
     vague_references = [
         r'star', r'celebrity', r'actor', r'actress', r'singer', r'rapper',
@@ -77,7 +90,9 @@ def filter_articles_with_vague_references(articles):
             refined_articles.append({
                 'headline': headline,
                 'full_text': full_text,
-                'match': match
+                'match': match,
+                'article_url': article['article_url'],
+                'image_url': article['image_url'],
             })
     
     return refined_articles
@@ -89,17 +104,19 @@ def scrape_articles():
     article_info = get_article_info(base_url)
     articles = []
 
-    for article in article_info[:40]:  # Limiting to first 40 articles
+    for article in article_info[:10]:  # Limiting to first 40 articles
         try:
             # Check if the article URL contains 'video'
             if 'video' in article['url'].lower():
                 continue
             
             full_text = get_article_text(article['url'])
+            image_url = get_image_url(article['url'])  # Example function to fetch image URL
             articles.append({
                 'title': article['title'],
                 'first_512_chars': full_text,
-                'article_url': article['url']
+                'article_url': article['url'],
+                'image_url': image_url,
             })
             time.sleep(1)  # Be polite to the server
         except Exception as e:
@@ -122,15 +139,16 @@ def perform_ner_on_articles(refined_articles):
         
         # Perform NER on the first 512 characters of the article text
         entities = perform_ner(full_text)
-        if entities:
-            entity_info = ', '.join([entity[0] for entity in entities])
-        else:
-            entity_info = "None"
+        
+        # Extract the first named entity
+        first_named_entity = next((entity[0] for entity in entities if entity[1] == 'PERSON'), None)
 
         ner_results.append({
             'headline': headline,
             'vague_reference': match,
-            'ner_result': entity_info
+            'first_named_entity': first_named_entity,
+            'article_url': article['article_url'],  # Include article URL
+            'image_url': article['image_url'],  # Include image URL
         })
     
     return ner_results
