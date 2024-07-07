@@ -10,32 +10,32 @@
             position: relative;
             cursor: pointer;
         }
-        .headline {
+        .text-container {
             position: relative;
+            height: 100px; /* Set a fixed height */
+            overflow: hidden; /* Hide overflow */
+        }
+        .headline, .additional-info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             padding: 1rem;
             background-color: rgba(255, 255, 255, 0.95);
             border: 1px solid #ccc;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
             z-index: 10;
-            min-height: 3rem; /* Adjust min-height as needed */
             transition: opacity 0.3s ease;
+            overflow-y: auto; /* Allow vertical scrolling if content exceeds height */
         }
         .additional-info {
-            position: absolute;
-            bottom: 0; /* Adjust to align with bottom of card */
-            left: 0; /* Adjust to align with card */
-            right: 0; /* Adjust to align with card */
-            padding: 1rem;
-            background-color: rgba(255, 255, 255, 0.95);
-            border: 1px solid #ccc;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-            z-index: 10;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
         }
         .result-card:hover .headline {
             opacity: 0;
+            pointer-events: none;
         }
         .result-card:hover .additional-info {
             opacity: 1;
@@ -53,25 +53,26 @@
         {% for result in ner_results %}
         <div class="result-card max-w-sm rounded-lg overflow-hidden shadow-lg relative">
             <img src="{{ result.image_url }}" alt="article image" class="w-full h-64 object-cover object-center opacity-90 hover:opacity-100">
-            <div class="headline h-min-[300px]">
-                <h2 class="text-xl font-semibold mb-2">
-                    <a href="{{ result.article_url }}" target="_blank">{{ result.headline }}</a>
-                </h2>
-            </div>
-            <div class="additional-info h-min-[300px]">
-                {% if result.vague_reference %}
-                <h2 class="text-xl font-semibold mb-2">
-                    <a href="{{ result.article_url }}" target="_blank">The {{ result.vague_reference }} is {{ result.first_named_entity }}</a>
-                </h2>
-                {% else %}
-                <h2 class="text-xl font-semibold mb-2">
-                    <a href="{{ result.article_url }}" target="_blank">No vague descriptor found</a>
-                </h2>
-                {% endif %}
+            <div class="text-container">
+                <div class="headline">
+                    <h2 class="text-xl font-semibold mb-2">
+                        <a href="{{ result.article_url }}" target="_blank">{{ result.headline }}</a>
+                    </h2>
+                </div>
+                <div class="additional-info">
+                    {% if result.vague_reference %}
+                    <h2 class="text-xl font-semibold mb-2">
+                        <a href="{{ result.article_url }}" target="_blank">The {{ result.vague_reference }} is {{ result.first_named_entity }}</a>
+                    </h2>
+                    {% else %}
+                    <h2 class="text-xl font-semibold mb-2">
+                        <a href="{{ result.article_url }}" target="_blank">No vague descriptor found</a>
+                    </h2>
+                    {% endif %}
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
-
 </body>
 </html>
