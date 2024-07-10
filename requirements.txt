@@ -47,3 +47,7 @@ weasel==0.4.1
 Werkzeug==3.0.3
 wrapt==1.16.0
 gunicorn==20.1.0
+Flask-SQLAlchemy
+psycopg2-binary
+APScheduler
+python-dotenv
