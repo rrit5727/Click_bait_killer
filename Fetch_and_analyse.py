@@ -104,7 +104,7 @@ def scrape_articles():
     article_info = get_article_info(base_url)
     articles = []
 
-    for article in article_info[:10]:  # Limiting to first 40 articles
+    for article in article_info[:40]:  # Limiting to first 40 articles
         try:
             # Check if the article URL contains 'video'
             if 'video' in article['url'].lower():
