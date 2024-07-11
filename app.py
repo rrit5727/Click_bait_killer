@@ -37,16 +37,23 @@ class Article(db.Model):
 def scrape_and_process_articles():
     logging.info("Starting scrape and process job")
     scraped_articles = scrape_articles()  # Call the function to get the articles
-    logger.info(f"Scraped {len(scraped_articles)} articles")
-
+    
     for article in scraped_articles:  # Iterate over the returned articles
         existing_article = Article.query.filter_by(title=article['title']).first()
         if not existing_article:
-            refined_articles = filter_articles_with_vague_references([article])
+            # Adjust the article structure to match what filter_articles_with_vague_references expects
+            adjusted_article = {
+                'title': article['title'],
+                'headline': article['title'],
+                'full_text': article['first_512_chars'],
+                'article_url': article['article_url'],
+                'image_url': article['image_url']
+            }
+            refined_articles = filter_articles_with_vague_references([adjusted_article])
             if refined_articles:  # Check if the list is not empty
                 refined_article = refined_articles[0]
                 ner_results = perform_ner_on_articles([refined_article])[0]
-                new_article = Article(title=refined_article['title'], content=refined_article['content'], ner_results=ner_results)
+                new_article = Article(title=refined_article['headline'], content=refined_article['full_text'], ner_results=ner_results)
                 db.session.add(new_article)
     
     db.session.commit()
@@ -60,8 +67,9 @@ def index():
 
 @app.route('/results', methods=['POST'])
 def show_results():
-    recent_articles = Article.query.order_by(Article.id.desc()).limit(10).all()
-    return render_template('results.html', ner_results=[article.ner_results for article in recent_articles])
+    recent_articles = Article.query.order_by(Article.id.desc()).limit(16).all()
+    valid_results = [article.ner_results for article in recent_articles if article.ner_results.get('first_named_entity')]
+    return render_template('results.html', ner_results=valid_results)
 
 # initialize scheduler
 scheduler = BackgroundScheduler()

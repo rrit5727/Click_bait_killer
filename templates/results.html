@@ -5,79 +5,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/main.css">
     <style>
-        .result-card {
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-        }
-        .text-container {
-            position: relative;
-            height: 100px; /* Set a fixed height */
-            overflow: hidden; /* Hide overflow */
-        }
-        .headline, .additional-info {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            padding: 1rem;
-            border: 1px solid #ccc;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-            z-index: 10;
-            overflow-y: auto; /* Allow vertical scrolling if content exceeds height */
-            transition: transform 0.5s ease;
-        }
-        .headline {
-            background-color: white;
-        }
-        .headline a {
-            color: #3b82f6; /* Tailwind's blue-500 */
-        }
-        .additional-info {
-            transform: translateX(100%);
-            background-color: #3b82f6; /* Tailwind's blue-500 */
-            color: white;
-        }
-        .result-card:hover .headline {
-            transform: translateX(-100%);
-        }
-        .result-card:hover .additional-info {
-            transform: translateX(0);
-        }
-    </style>
+      .result-card {
+          position: relative;
+          cursor: pointer;
+          overflow: hidden;
+      }
+      .text-container {
+          position: relative;
+          height: 100px;
+          overflow: hidden;
+      }
+      .headline, .additional-info {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          padding: 1rem;
+          border: 1px solid #ccc;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+          z-index: 10;
+          overflow-y: auto;
+          transition: transform 0.5s ease;
+      }
+      .headline {
+          background-color: white;
+      }
+      .headline a {
+          color: #3b82f6;
+      }
+      .additional-info {
+          transform: translateX(100%);
+          background-color: #3b82f6;
+          color: white;
+      }
+      @media (min-width: 640px) {
+          .result-card:hover .headline {
+              transform: translateX(-100%);
+          }
+          .result-card:hover .additional-info {
+              transform: translateX(0);
+          }
+      }
+      @keyframes fadeInUp {
+          from {
+              opacity: 0;
+              transform: translate3d(0, 1rem, 0);
+          }
+          to {
+              opacity: 1;
+              transform: translate3d(0, 0, 0);
+          }
+      }
+      .animate-fade-in-up {
+          animation: fadeInUp 0.5s ease-out forwards;
+      }
+  </style>
 </head>
 <body class="bg-gray-100">
-    <div class="container mx-auto my-8">
-        <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 transform hover:-translate-y-1 hover:shadow-xl">&larr; Navigate to Home</a>
-    </div>  
+  <div class="container mx-auto my-8">
+      <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 transform hover:-translate-y-1 hover:shadow-xl">&larr; Navigate to Home</a>
+  </div>  
 
-    <h1 class="text-3xl font-bold text-center my-8">Results</h1>
-    <div id="results" class="container mx-auto grid grid-cols-1 sm:grid-cols-2 md:cols-3 lg:grid-cols-4 gap-4">
-        {% for result in ner_results %}
-        <div class="result-card max-w-sm rounded-lg overflow-hidden shadow-lg relative">
-            <img src="{{ result.image_url }}" alt="article image" class="w-full h-64 object-cover object-center opacity-90 hover:opacity-100">
-            <div class="text-container">
-                <div class="headline">
-                    <h2 class="text-xl font-semibold mb-2">
-                        <a href="{{ result.article_url }}" target="_blank">{{ result.headline }}</a>
-                    </h2>
-                </div>
-                <div class="additional-info">
-                    {% if result.vague_reference %}
-                    <h2 class="text-xl font-semibold mb-2">
-                        <a href="{{ result.article_url }}" target="_blank" class="text-white hover:underline">The {{ result.vague_reference }} is {{ result.first_named_entity }}</a>
-                    </h2>
-                    {% else %}
-                    <h2 class="text-xl font-semibold mb-2">
-                        <a href="{{ result.article_url }}" target="_blank" class="text-white hover:underline">No vague descriptor found</a>
-                    </h2>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+  <h1 class="text-3xl font-bold text-center my-8">Results</h1>
+  <div id="results" class="container mx-auto grid grid-cols-1 sm:grid-cols-2 md:cols-3 lg:grid-cols-4 gap-4">
+      {% for result in ner_results %}
+      <div class="result-card max-w-sm rounded-lg overflow-hidden shadow-lg relative opacity-0" data-index="{{ loop.index0 }}">
+          <a href="{{ result.article_url }}" target="_blank" class="block">
+              <img src="{{ result.image_url }}" alt="article image" class="w-full h-64 object-cover object-top opacity-90 hover:opacity-100 transform translate-y-10">
+          </a>
+          <div class="text-container">
+              <div class="headline">
+                  <h2 class="text-xl font-semibold mb-2">
+                      <a href="#" class="sm:pointer-events-none">{{ result.headline }}</a>
+                  </h2>
+              </div>
+              <div class="additional-info">
+                  {% if result.vague_reference %}
+                  <h2 class="text-xl font-semibold mb-2">
+                      <span class="text-white">The {{ result.vague_reference }} is {{ result.first_named_entity }}</span>
+                  </h2>
+                  {% else %}
+                  <h2 class="text-xl font-semibold mb-2">
+                      <span class="text-white">No vague descriptor found</span>
+                  </h2>
+                  {% endif %}
+              </div>
+          </div>
+      </div>
+      {% endfor %}
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const cards = document.querySelectorAll('.result-card');
+      cards.forEach((card, index) => {
+          setTimeout(() => {
+              card.classList.remove('opacity-0');
+              card.classList.add('animate-fade-in-up');
+          }, index * 100);
+
+          const headline = card.querySelector('.headline');
+          const additionalInfo = card.querySelector('.additional-info');
+
+          headline.addEventListener('click', function(e) {
+              if (window.innerWidth < 640) {
+                  e.preventDefault();
+                  headline.style.transform = 'translateX(-100%)';
+                  additionalInfo.style.transform = 'translateX(0)';
+              }
+          });
+
+          additionalInfo.addEventListener('click', function() {
+              if (window.innerWidth < 640) {
+                  headline.style.transform = 'translateX(0)';
+                  additionalInfo.style.transform = 'translateX(100%)';
+              }
+          });
+      });
+  });
+  </script>
 </body>
 </html>

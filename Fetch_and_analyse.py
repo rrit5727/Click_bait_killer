@@ -82,8 +82,8 @@ def filter_articles_with_vague_references(articles):
     refined_articles = []
 
     for article in articles:
-        headline = article['title']
-        full_text = article['first_512_chars']
+        headline = article['headline']
+        full_text = article['full_text']  # Changed from 'first_512_chars' to 'full_text'
         
         match = analyze_headline(headline)
         if match:
@@ -104,7 +104,7 @@ def scrape_articles():
     article_info = get_article_info(base_url)
     articles = []
 
-    for article in article_info[:40]:  # Limiting to first 40 articles
+    for article in article_info[:60]:  # Limiting to first 40 articles
         try:
             # Check if the article URL contains 'video'
             if 'video' in article['url'].lower():
@@ -126,7 +126,7 @@ def scrape_articles():
 
 def perform_ner(text):
     doc = nlp(text)
-    entities = [(ent.text, ent.label_) for ent in doc.ents if ent.label_ == "PERSON"]
+    entities = [ent.text for ent in doc.ents if ent.label_ == "PERSON"]
     return entities
 
 def perform_ner_on_articles(refined_articles):
@@ -137,18 +137,26 @@ def perform_ner_on_articles(refined_articles):
         full_text = article['full_text']
         match = article['match']
         
-        # Perform NER on the first 512 characters of the article text
+        # Perform NER on the full text of the article
         entities = perform_ner(full_text)
         
-        # Extract the first named entity
-        first_named_entity = next((entity[0] for entity in entities if entity[1] == 'PERSON'), None)
+        # Extract the headline words (excluding common words)
+        headline_words = set(word.lower() for word in headline.split() if len(word) > 3)
+        
+        # Find the first named entity that doesn't appear in the headline
+        first_named_entity = None
+        for entity in entities:
+            entity_words = set(word.lower() for word in entity.split())
+            if not entity_words.intersection(headline_words):
+                first_named_entity = entity
+                break
 
         ner_results.append({
             'headline': headline,
             'vague_reference': match,
             'first_named_entity': first_named_entity,
-            'article_url': article['article_url'],  # Include article URL
-            'image_url': article['image_url'],  # Include image URL
+            'article_url': article['article_url'],
+            'image_url': article['image_url'],
         })
     
     return ner_results
