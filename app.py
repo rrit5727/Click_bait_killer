@@ -46,6 +46,7 @@ def init_db():
 def scrape_and_process_articles():
     logging.info("Starting scrape and process job")
     scraped_articles = scrape_articles()  # Call the function to get the articles
+    logging.info(f"Scraped {len(scraped_articles)} articles")
     
     for article in scraped_articles:  # Iterate over the returned articles
         existing_article = Article.query.filter_by(title=article['title']).first()
@@ -77,8 +78,17 @@ def index():
 @app.route('/results', methods=['POST'])
 def show_results():
     recent_articles = Article.query.order_by(Article.id.desc()).limit(16).all()
+    logging.info(f"Found {len(recent_articles)} recent articles")
+
     valid_results = [article.ner_results for article in recent_articles if article.ner_results.get('first_named_entity')]
+    logging.info(f"Found {len(valid_results)} valid results")
+
     return render_template('results.html', ner_results=valid_results)
+
+@app.route('/debug')
+def debug():
+    articles = Article.query.all()
+    return f"Total articles: {len(articles)}"
 
 # initialize scheduler
 scheduler = BackgroundScheduler()

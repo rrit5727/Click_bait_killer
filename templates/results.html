@@ -70,9 +70,15 @@
   </div>  
 
   <h1 class="text-3xl font-bold text-center my-8">Results</h1>
+  {% if ner_results %}
+    <p>Found {{ ner_results|length }} results</p>
+  {% else %}
+    <p>No results found</p>
+  {% endif %}  
+
   <div id="results" class="container mx-auto grid grid-cols-1 sm:grid-cols-2 md:cols-3 lg:grid-cols-4 gap-4">
       {% for result in ner_results %}
-      <div class="result-card max-w-sm rounded-lg overflow-hidden shadow-lg relative opacity-0" data-index="{{ loop.index0 }}">
+      <div class="result-card max-w-sm rounded-lg overflow-hidden shadow-lg relative " data-index="{{ loop.index0 }}">
           <a href="{{ result.article_url }}" target="_blank" class="block">
               <img src="{{ result.image_url }}" alt="article image" class="w-full h-64 object-cover object-top opacity-90 hover:opacity-100 transform translate-y-10">
           </a>
