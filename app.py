@@ -13,7 +13,6 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 try:
     nlp = spacy.load("en_core_web_sm")
 except Exception as e:
@@ -24,52 +23,54 @@ except Exception as e:
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL').replace("postgres://", "postgresql://", 1) if os.getenv('DATABASE_URL') else "sqlite:///local.db"
 
-print(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
+print(f"Connecting to database: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
 db = SQLAlchemy(app)
-try:
-    db.create_all()
-except Exception as e:
-    print(f"An error occurred while creating database tables: {e}")
 
 class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), unique=True, nullable=False )
+    title = db.Column(db.String(200), unique=True, nullable=False)
     content = db.Column(db.Text, nullable=False)
     ner_results = db.Column(db.JSON)
 
 def init_db():
     with app.app_context():
-        db.create_all()
-        print("Database tables created.")
+        inspector = db.inspect(db.engine)
+        if not inspector.has_table("article"):
+            db.create_all()
+            print("Database tables created.")
+        else:
+            print("Database tables already exist.")
 
 def scrape_and_process_articles():
-    logging.info("Starting scrape and process job")
-    scraped_articles = scrape_articles()  # Call the function to get the articles
-    logging.info(f"Scraped {len(scraped_articles)} articles")
-    
-    for article in scraped_articles:  # Iterate over the returned articles
-        existing_article = Article.query.filter_by(title=article['title']).first()
-        if not existing_article:
-            # Adjust the article structure to match what filter_articles_with_vague_references expects
-            adjusted_article = {
-                'title': article['title'],
-                'headline': article['title'],
-                'full_text': article['first_512_chars'],
-                'article_url': article['article_url'],
-                'image_url': article['image_url']
-            }
-            refined_articles = filter_articles_with_vague_references([adjusted_article])
-            if refined_articles:  # Check if the list is not empty
-                refined_article = refined_articles[0]
-                ner_results = perform_ner_on_articles([refined_article])[0]
-                new_article = Article(title=refined_article['headline'], content=refined_article['full_text'], ner_results=ner_results)
-                db.session.add(new_article)
-    
-    db.session.commit()
-    logging.info(f"Completed scrape and process job. Added {db.session.new} new articles.")
-
-
+    try:
+        logging.info("Starting scrape and process job")
+        scraped_articles = scrape_articles()
+        logging.info(f"Scraped {len(scraped_articles)} articles")
+        
+        new_articles_count = 0
+        for article in scraped_articles:
+            existing_article = Article.query.filter_by(title=article['title']).first()
+            if not existing_article:
+                adjusted_article = {
+                    'title': article['title'],
+                    'headline': article['title'],
+                    'full_text': article['first_512_chars'],
+                    'article_url': article['article_url'],
+                    'image_url': article['image_url']
+                }
+                refined_articles = filter_articles_with_vague_references([adjusted_article])
+                if refined_articles:
+                    refined_article = refined_articles[0]
+                    ner_results = perform_ner_on_articles([refined_article])[0]
+                    new_article = Article(title=refined_article['headline'], content=refined_article['full_text'], ner_results=ner_results)
+                    db.session.add(new_article)
+                    new_articles_count += 1
+        
+        db.session.commit()
+        logging.info(f"Completed scrape and process job. Added {new_articles_count} new articles.")
+    except Exception as e:
+        logging.error(f"Error in scrape_and_process_articles: {str(e)}")
 
 @app.route('/')
 def index():
@@ -90,15 +91,19 @@ def debug():
     articles = Article.query.all()
     return f"Total articles: {len(articles)}"
 
+@app.route('/scrape')
+def manual_scrape():
+    scrape_and_process_articles()
+    return "Scrape and process job completed. Check logs for details."
+
 # initialize scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=scrape_and_process_articles, trigger="interval", hours=3)
-logger.info("Scheduler started")
-
-
+logger.info("Scheduler initialized")
 
 if __name__ == "__main__":
     init_db()
     scheduler.start()
     logger.info("Scheduler started")
+    scrape_and_process_articles()  # Run immediately
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
