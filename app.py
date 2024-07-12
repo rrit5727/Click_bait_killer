@@ -22,11 +22,15 @@ except Exception as e:
     nlp = spacy.load("en_core_web_sm")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL').replace("postgres://", "postgresql://", 1) if os.getenv('DATABASE_URL') else "sqlite:///local.db"
 
 print(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
 db = SQLAlchemy(app)
+try:
+    db.create_all()
+except Exception as e:
+    print(f"An error occurred while creating database tables: {e}")
 
 class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -74,7 +78,6 @@ def show_results():
 # initialize scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=scrape_and_process_articles, trigger="interval", hours=3)
-scheduler.start()
 logger.info("Scheduler started")
 
 
@@ -85,6 +88,8 @@ if __name__ == "__main__":
         db.create_all()
         scrape_and_process_articles()  # Run immediately on startup
 
+    # start the scheduler
+    scheduler.start()
 
     # start the flask app
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
