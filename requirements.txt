@@ -51,3 +51,4 @@ Flask-SQLAlchemy
 psycopg2-binary
 APScheduler
 python-dotenv
+celery[redis]

@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import os
 import logging
 from dotenv import load_dotenv
+from celery_config import scrape_and_process_articles_task
 
 load_dotenv()
 
@@ -93,8 +94,8 @@ def debug():
 
 @app.route('/scrape')
 def manual_scrape():
-    scrape_and_process_articles()
-    return "Scrape and process job completed. Check logs for details."
+    task = scrape_and_process_articles_task.delay()
+    return f"Scrape and process job started with task id {task.id}. Check logs for details."
 
 # initialize scheduler
 scheduler = BackgroundScheduler()
@@ -103,7 +104,4 @@ logger.info("Scheduler initialized")
 
 if __name__ == "__main__":
     init_db()
-    scheduler.start()
-    logger.info("Scheduler started")
-    scrape_and_process_articles()  # Run immediately
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
