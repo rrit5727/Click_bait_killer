@@ -38,6 +38,11 @@ class Article(db.Model):
     content = db.Column(db.Text, nullable=False)
     ner_results = db.Column(db.JSON)
 
+def init_db():
+    with app.app_context():
+        db.create_all()
+        print("Database tables created.")
+
 def scrape_and_process_articles():
     logging.info("Starting scrape and process job")
     scraped_articles = scrape_articles()  # Call the function to get the articles
@@ -83,13 +88,7 @@ logger.info("Scheduler started")
 
 
 if __name__ == "__main__":
-    # create tables
-    with app.app_context():
-        db.create_all()
-        scrape_and_process_articles()  # Run immediately on startup
-
-    # start the scheduler
+    init_db()
     scheduler.start()
-
-    # start the flask app
+    logger.info("Scheduler started")
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
