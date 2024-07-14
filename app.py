@@ -22,7 +22,7 @@ def index():
 def show_results():
     try:
         recent_articles = Article.query.order_by(Article.id.desc()).limit(16).all()
-        valid_results = [article.ner_results for article in recent_articles if article.ner_results and article.ner_results.get('vague_references')]
+        valid_results = [article.ner_results for article in recent_articles if article.ner_results and article.ner_results.get('first_named_entity')]
         return render_template('results.html', ner_results=valid_results)
     except Exception as e:
         print(f"An error occurred: {str(e)}")
