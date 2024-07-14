@@ -83,14 +83,26 @@
                   </h2>
               </div>
               <div class="additional-info">
-                  {% if result.vague_reference %}
-                  <h2 class="text-xl font-semibold mb-2">
-                      <span class="text-white">The {{ result.vague_reference }} is {{ result.first_named_entity }}</span>
-                  </h2>
+                  {% if result.vague_references %}
+                      {% if result.vague_references|length == 1 %}
+                          <h2 class="text-xl font-semibold mb-2">
+                              <span class="text-white">The {{ result.vague_references[0] }} is {{ result.named_entities[0] }}</span>
+                          </h2>
+                      {% else %}
+                          <h2 class="text-xl font-semibold mb-2">
+                              <span class="text-white">
+                                  {% for i in range(result.vague_references|length) %}
+                                      {% if i > 0 %}and {% endif %}
+                                      the {{ result.vague_references[i] }} is {{ result.named_entities[i] }}
+                                      {% if not loop.last %}, {% endif %}
+                                  {% endfor %}
+                              </span>
+                          </h2>
+                      {% endif %}
                   {% else %}
-                  <h2 class="text-xl font-semibold mb-2">
-                      <span class="text-white">No vague descriptor found</span>
-                  </h2>
+                      <h2 class="text-xl font-semibold mb-2">
+                          <span class="text-white">No vague descriptor found</span>
+                      </h2>
                   {% endif %}
               </div>
           </div>
