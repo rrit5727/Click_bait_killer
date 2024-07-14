@@ -73,24 +73,21 @@ def analyze_headline(headline):
     
     matches = re.findall(pattern, headline.lower())
     
-    if matches:
-        return matches[0]
-    else:
-        return None
+    return matches
 
 def filter_articles_with_vague_references(articles):
     refined_articles = []
 
     for article in articles:
         headline = article['headline']
-        full_text = article['full_text']  # Changed from 'first_512_chars' to 'full_text'
+        full_text = article['full_text']
         
-        match = analyze_headline(headline)
-        if match:
+        matches = analyze_headline(headline)
+        if matches:
             refined_articles.append({
                 'headline': headline,
                 'full_text': full_text,
-                'match': match,
+                'matches': matches,
                 'article_url': article['article_url'],
                 'image_url': article['image_url'],
             })
@@ -99,19 +96,16 @@ def filter_articles_with_vague_references(articles):
 
 def scrape_articles():
     base_url = 'https://www.news.com.au/entertainment'
-    # Your existing scraping logic here
-    # Return the scraped articles list
     article_info = get_article_info(base_url)
     articles = []
 
-    for article in article_info[:60]:  # Limiting to first 40 articles
+    for article in article_info[:60]:  # Limiting to first 60 articles
         try:
-            # Check if the article URL contains 'video'
             if 'video' in article['url'].lower():
                 continue
             
             full_text = get_article_text(article['url'])
-            image_url = get_image_url(article['url'])  # Example function to fetch image URL
+            image_url = get_image_url(article['url'])
             articles.append({
                 'title': article['title'],
                 'first_512_chars': full_text,
@@ -135,26 +129,24 @@ def perform_ner_on_articles(refined_articles):
     for article in refined_articles:
         headline = article['headline']
         full_text = article['full_text']
-        match = article['match']
+        matches = analyze_headline(headline)
         
-        # Perform NER on the full text of the article
         entities = perform_ner(full_text)
         
-        # Extract the headline words (excluding common words)
         headline_words = set(word.lower() for word in headline.split() if len(word) > 3)
         
-        # Find the first named entity that doesn't appear in the headline
-        first_named_entity = None
+        named_entities = []
         for entity in entities:
             entity_words = set(word.lower() for word in entity.split())
             if not entity_words.intersection(headline_words):
-                first_named_entity = entity
-                break
+                named_entities.append(entity)
+                if len(named_entities) == len(matches):
+                    break
 
         ner_results.append({
             'headline': headline,
-            'vague_reference': match,
-            'first_named_entity': first_named_entity,
+            'vague_references': matches,
+            'named_entities': named_entities,
             'article_url': article['article_url'],
             'image_url': article['image_url'],
         })
