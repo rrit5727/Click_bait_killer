@@ -6,10 +6,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', '').replace('postgres://', 'postgresql://')
 db = SQLAlchemy(app)
 
-# Celery configuration
-app.config['CELERY_BROKER_URL'] = os.getenv('REDIS_URL')
-celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-celery.conf.update(app.config)
 
 class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)

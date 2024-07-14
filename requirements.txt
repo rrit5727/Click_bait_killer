@@ -6,7 +6,6 @@ billiard==4.2.0
 blinker==1.8.2
 blis==0.7.11
 catalogue==2.0.10
-celery==5.4.0
 certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
@@ -42,7 +41,6 @@ Pygments==2.18.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.1
-redis==5.0.7
 requests==2.32.3
 rich==13.7.1
 setuptools==70.2.0
