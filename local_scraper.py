@@ -36,13 +36,14 @@ def scrape_and_analyze():
                 'headline': article['title'],
                 'full_text': article['first_512_chars'],
                 'article_url': article['article_url'],
-                'image_url': article['image_url']
+                'image_url': article['image_url'],
+                'date': article['date']
             }
             refined_articles = filter_articles_with_vague_references([adjusted_article])
             if refined_articles:
                 refined_article = refined_articles[0]
                 ner_results = perform_ner_on_articles([refined_article])[0]
-                new_article = Article(title=refined_article['headline'], content=refined_article['full_text'], ner_results=ner_results)
+                new_article = Article(title=refined_article['headline'], content=refined_article['full_text'], ner_results=ner_results, date=refined_article['date'])
                 session.add(new_article)
                 new_articles_count += 1
     session.commit()

@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import time
 import re
 import spacy
+from datetime import datetime
 
 # Load the spacy NER model
 nlp = spacy.load("en_core_web_sm")
@@ -22,6 +23,15 @@ def get_article_info(url):
             })
     
     return articles
+
+def get_article_date(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    date_div = soup.find('div', id='publish-date', class_='byline_publish')
+    if date_div:
+        date_str = date_div.text.split('-')[0].strip()
+        return datetime.strptime(date_str, '%B %d, %Y').date()
+    return None
 
 def get_article_text(url):
     response = requests.get(url)
@@ -99,24 +109,24 @@ def filter_articles_with_vague_references(articles):
 
 def scrape_articles():
     base_url = 'https://www.news.com.au/entertainment'
-    # Your existing scraping logic here
-    # Return the scraped articles list
     article_info = get_article_info(base_url)
     articles = []
 
-    for article in article_info[:60]:  # Limiting to first 40 articles
+    for article in article_info[:60]:  # Limiting to first 60 articles
         try:
-            # Check if the article URL contains 'video'
             if 'video' in article['url'].lower():
                 continue
             
             full_text = get_article_text(article['url'])
-            image_url = get_image_url(article['url'])  # Example function to fetch image URL
+            image_url = get_image_url(article['url'])
+            article_date = get_article_date(article['url'])
+            
             articles.append({
                 'title': article['title'],
                 'first_512_chars': full_text,
                 'article_url': article['url'],
                 'image_url': image_url,
+                'date': article_date
             })
             time.sleep(1)  # Be polite to the server
         except Exception as e:
