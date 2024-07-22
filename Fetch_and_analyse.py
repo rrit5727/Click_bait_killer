@@ -112,7 +112,7 @@ def scrape_articles():
     article_info = get_article_info(base_url)
     articles = []
 
-    for article in article_info[:60]:  # Limiting to first 60 articles
+    for article in article_info[:100]:  # Limiting to first 60 articles
         try:
             if 'video' in article['url'].lower():
                 continue
